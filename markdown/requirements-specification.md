@@ -1,112 +1,108 @@
-# Specification — Generic Python Template
-
+# Specification - Generic Python Template
 
 ## 1. Objective
 
+This repository provides a clean, minimal, and reusable Python foundation for new projects.
 
-This repository aims to provide a clean, minimal, and reusable Python foundation to start any type of project: library, CLI, API, automation, internal tool, prototype, or more complete application.
-
+It is intended to be forked, copied, or used as a template. It is not intended to be consumed unchanged as a finished production application.
 
 The template is intentionally neutral:
 
-
-- no dependency on any organization;
-- no dependency on a specific infrastructure platform;
+- no imposed web framework;
+- no imposed database;
+- no imposed message queue;
+- no imposed cloud provider;
 - no imposed business logic;
-- no premature application architecture;
-- a well-tooled, clean base that is easy to evolve.
+- no premature application architecture.
 
+The guiding principle is simple: provide common foundations, then let each derived project add only what it needs.
 
-The guiding principle is simple: provide common foundations, then let each project add only what it needs.
+## 2. Functional Scope
 
-
----
-
-
-## 2. Expected Functional Scope
-
-
-### Included in the template
-
+### Included
 
 - Python project management with `uv`.
+- Reproducible lock file with `uv.lock`.
 - Local automation with `nox`.
-- Reproducible development environment.
+- Minimal package scaffold in `template_doc/`.
+- CLI smoke-test entrypoint.
+- Typed settings with `pydantic-settings`.
+- Environment-variable-based runtime configuration.
+- `.env.example` as documentation for local configuration.
 - Formatting and linting with `ruff`.
 - Static typing with `mypy`.
-- Secret detection via `pre-commit` and `gitleaks`.
-- Minimal VS Code configuration.
-- `.gitignore` suited for Python projects.
-- Markdown documentation for project framing.
-- Development dependencies useful for most projects.
+- Test and coverage tooling for future tests.
+- Dependency auditing with `pip-audit`.
+- Secret detection with Gitleaks.
+- Dockerfile scaffold.
+- Reusable GitHub Actions quality workflow.
+- GitHub Actions CI workflow.
+- GitHub Actions CI/CD workflow with image build, security scans, and GHCR publishing.
+- Trivy, OSV Scanner, and Gitleaks security scanning.
+- Trivy exception expiry check.
+- Markdown documentation.
 
+### Explicitly Out Of Scope
 
-### Explicitly out of scope
+- A finished application.
+- A framework-specific architecture.
+- Production deployment configuration.
+- Organization-specific branch protection rules.
+- Organization-specific release approval process.
+- A universal security exception policy for all derived projects.
 
-
-- Imposed application architecture.
-- Imposed web framework.
-- Imposed database.
-- Imposed message queue.
-- Imposed AI engine.
-- Imposed infrastructure provider.
-- Imposed CI/CD.
-- Imposed advanced packaging.
-- Imposed application framework beyond the minimal package scaffold.
-
-
----
-
+Derived projects must adapt those parts to their own context.
 
 ## 3. Current Repository Structure
 
-
 ```text
 template-doc/
+├── .github/
+│   └── workflows/
+│       ├── ci.yaml
+│       ├── cicd.yaml
+│       └── quality.yaml
+├── markdown/
+│   ├── adr-trivyignore-expiry-check.md
+│   ├── project-template.md
+│   ├── python-docker-cicd-template.md
+│   ├── requirements-specification.md
+│   └── vscode-extensions.md
+├── scripts/
+│   └── check-trivyignore-expiry.sh
+├── template_doc/
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── py.typed
+│   └── settings.py
+├── .dockerignore
+├── .env.example
 ├── .gitignore
 ├── .pre-commit-config.yaml
-├── .vscode/
-│   └── settings.json
-├── .env.example
+├── .trivyignore.yaml
+├── CHANGELOG.md
+├── Dockerfile
 ├── LICENSE
-├── markdown/
-│   ├── requirements-specification.md
-│   ├── project-template.md
-│   └── vscode-extensions.md
+├── README.md
 ├── noxfile.py
 ├── pyproject.toml
-├── src/
-│   └── template_doc/
-│       ├── __init__.py
-│       ├── cli.py
-│       ├── py.typed
-│       └── settings.py
 └── uv.lock
 ```
 
+Local cache and environment directories such as `.venv/`, `.nox/`, `.mypy_cache/`, `.ruff_cache/`, and `__pycache__/` are local artifacts and must remain ignored by Git.
 
-Local cache and environment directories (`.venv/`, `.nox/`, `.mypy_cache/`, `.ruff_cache/`, `__pycache__/`) are considered local artifacts and must remain ignored by Git.
+## 4. Current Tooling
 
+### 4.1 Dependency Management
 
----
+The project uses `uv`.
 
+Runtime dependencies are intentionally minimal:
 
-## 4. Existing Tooling
+- `pydantic`;
+- `pydantic-settings`.
 
-
-### 4.1 Dependency management
-
-
-The project uses `uv` with a simple `pyproject.toml`:
-
-
-- `src/template_doc` as a minimal importable package;
-- `pydantic` and `pydantic-settings` as runtime dependencies for typed configuration;
-- dependency groups separated by usage.
-
-
-Available groups:
-
+Developer and tooling dependencies are separated into dependency groups:
 
 | Group | Usage |
 |---|---|
@@ -114,11 +110,25 @@ Available groups:
 | `format` | Formatting and import sorting |
 | `lint` | Static analysis |
 | `typing` | Type checking |
-| `test` | Testing tools for future evolution |
+| `test` | Test and coverage tooling |
 
+### 4.2 Runtime Configuration
 
-### 4.2 Nox sessions
+Settings are defined in `template_doc/settings.py`.
 
+Runtime configuration comes from environment variables. The application does not implicitly load `.env`, so behavior does not depend on the current working directory.
+
+`get_settings()` is cached for stable runtime behavior. Tests that mutate environment variables must clear this cache before reading settings again.
+
+`.env.example` documents expected variables:
+
+```env
+APP_NAME=template-doc
+APP_ENV=development
+APP_DEBUG=false
+```
+
+### 4.3 Nox Sessions
 
 | Session | Status | Role |
 |---|---|---|
@@ -126,173 +136,151 @@ Available groups:
 | `format` | Implemented | Checks import sorting and Ruff formatting |
 | `lint` | Implemented | Runs Ruff on detected source paths |
 | `typing` | Implemented | Runs mypy |
-| `docker_build` | Partially implemented | Builds a Docker image if a `Dockerfile` exists |
+| `test` | Implemented | Runs pytest when tests exist; passes for the scaffold while no tests exist |
+| `audit` | Implemented | Runs `pip-audit` |
+| `docker_build` | Implemented | Builds the Docker image |
+| `docker_smoke` | Implemented | Runs a minimal container smoke test |
 
+### 4.4 Code Quality
 
-### 4.3 Code quality
-
-
-Ruff is configured with a reasonable baseline:
-
+Ruff is configured with a pragmatic baseline:
 
 - Python errors (`E`, `F`);
 - import sorting (`I`);
 - common best practices (`B`, `UP`, `SIM`);
-- line length set to 120 characters;
-- exclusion of caches, local environments, and build directories.
+- line length set to 120 characters.
 
-
-Mypy is configured to:
-
+Mypy is configured with a non-strict baseline:
 
 - target Python 3.12;
-- check untyped functions;
+- check untyped function bodies;
 - report unnecessary casts and ignores;
-- report unused configurations.
+- report unused configuration.
 
+This baseline is acceptable for the generic template. Derived projects should either keep this choice documented or adopt a stricter profile once real application modules exist:
 
-### 4.4 Basic security
-
-
-`pre-commit` includes only `gitleaks` in version `v8.21.2`.
-
-
-Goal: prevent accidental commits of secrets, tokens, keys, or passwords.
-
-
-### 4.5 IDE configuration
-
-
-VS Code points to the local environment:
-
-
-```json
-{
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "python.terminal.activateEnvironment": true
-}
+```toml
+[tool.mypy]
+python_version = "3.12"
+strict = true
 ```
 
+### 4.5 Security
 
----
+Security tooling includes:
 
+- Gitleaks in pre-commit;
+- `pip-audit` in Nox;
+- Trivy image scan;
+- Trivy filesystem scan for vulnerabilities, secrets, and misconfigurations;
+- OSV Scanner;
+- Gitleaks Git history scan;
+- `.trivyignore.yaml` for temporary exceptions;
+- `scripts/check-trivyignore-expiry.sh` to fail CI/CD when exceptions expire.
 
-## 5. Comparison: Existing vs Remaining Work
+The Trivy filesystem SARIF is uploaded for GitHub code scanning. The CI/CD workflow also runs blocking table-output checks for repository CVEs and for high/critical secrets or misconfigurations.
 
+The ADR for Trivy exception expiration is:
 
-| Area | Already implemented | Remaining work |
+```text
+markdown/adr-trivyignore-expiry-check.md
+```
+
+### 4.6 CI/CD
+
+The shared quality workflow runs dependency audit, formatting, linting, typing, and tests. It is called by both CI and CI/CD so pull-request validation and delivery use the same quality gate.
+
+The CI workflow runs on:
+
+- manual dispatch;
+- push to `main`;
+- pull request to `main`.
+
+The CI/CD workflow runs on:
+
+- manual dispatch;
+- push to `main`.
+
+The CI/CD workflow runs the shared quality workflow, builds and smoke-tests an image, runs security scans, and publishes to GHCR only after blocking checks pass.
+
+Docker, GHCR publishing, and the security workflow are scaffolding for derived projects. They must be reviewed before a real project relies on them.
+
+## 5. Existing vs Remaining Work
+
+| Area | Current State | Remaining Work For Derived Projects |
 |---|---|---|
-| Project metadata | Minimal `pyproject.toml` | Adapt `name`, `description`, authors, and version per project |
-| Runtime dependencies | Only typed settings dependencies | Add business dependencies case by case with `uv add` |
-| Dev dependencies | Groups `dev`, `format`, `lint`, `typing`, `test` | Add specialized groups if needed |
-| Local environment | `.venv` managed via `uv`, `dev` session | Document installation command in a README |
-| Automation | Main Nox sessions | Add a `test` session when tests are created |
-| Formatting | Ruff configured | Add a Ruff pre-commit hook if desired |
-| Linting | Ruff configured | Adjust rules based on project maturity |
-| Typing | Mypy configured | Gradually move toward `strict = true` if justified |
-| Testing | Test dependencies present | Create `tests/` and a Nox `test` session |
-| Secret security | Gitleaks configured | Add local rules if needed |
-| Git ignore | Clean Python base | Adjust based on added tools |
-| VS Code | Local interpreter configured | Add extensions/recommendations if needed |
-| Docker | Generic `docker_build` session | Create a `Dockerfile` if containerization is required |
-| Documentation | `markdown/` folder present | Create a user-oriented `README.md` |
-| Packaging | Minimal `src/template_doc` package enabled | Adapt package metadata before publishing |
-| CI/CD | Not implemented | Add GitHub Actions or another CI when delivery flow is defined |
-| Source structure | Minimal `src/template_doc` package present | Extend it into a CLI, app, or library as needed |
-| Application config | `.env.example` and typed settings present | Add project-specific config fields |
-| License | MIT license present | Replace placeholder owner before sharing |
+| Project metadata | Standard template metadata in `pyproject.toml` | Replace placeholder authors, classifiers, keywords, and URLs |
+| Runtime dependencies | Minimal typed settings dependencies | Add only project-specific runtime dependencies |
+| Dev dependencies | Organized dependency groups | Add specialized tooling only when needed |
+| Local automation | Main Nox sessions implemented | Adapt sessions to project workflows |
+| Formatting | Ruff configured | Adjust rules as maturity increases |
+| Linting | Ruff configured | Add stricter rule families if useful |
+| Typing | Mypy non-strict baseline | Enable stricter typing when ready |
+| Testing | Test tooling present; scaffold passes without tests | Add real tests as soon as behavior exists |
+| Configuration | Environment-variable based settings | Add project-specific settings |
+| Docker | Dockerfile scaffold present | Adapt runtime command, ports, base image, and dependencies |
+| CI | Validation workflow present and backed by shared quality workflow | Configure required checks and branch protection |
+| CI/CD | Build, scan, publish scaffold present | Adapt registry, release strategy, environments, and secrets |
+| Security exceptions | `.trivyignore.yaml` with expiry check | Review ownership and renewal policy |
+| Documentation | README and supporting Markdown present | Keep docs aligned with real project behavior |
+| Release process | Changelog present | Define release policy for derived project |
 
+## 6. Recommendations For Derived Projects
 
----
+### Immediate Adaptation
 
+1. Rename the package directory from `template_doc/` to the real project name.
+2. Rename the CLI command from `template-doc` if needed.
+3. Update project metadata.
+4. Update README content.
+5. Review runtime dependencies.
+6. Add tests once behavior exists.
+7. Review Dockerfile and workflows before enabling publishing.
 
-## 6. Recommendations for a Truly Robust Base
+### Before Production Use
 
-
-### Priority 1 — Immediately useful foundation
-
-
-1. Add a minimal `README.md` with installation, Nox commands, and conventions.
-2. Add a `test` Nox session.
-3. Add a Ruff hook in `.pre-commit-config.yaml`.
-4. Add a `tests/` directory with an initial smoke test.
-5. Replace the placeholder license owner before sharing the project.
-
-
-### Priority 2 — When a real project starts
-
-
-1. Rename `src/template_doc` to the real package name.
-2. Add only the required runtime dependencies.
-3. Create the first application modules.
-4. Add a `Dockerfile` only if deployment requires it.
-
-
-### Priority 3 — When the project becomes serious
-
-
-1. Add CI.
-2. Publish test and coverage reports.
-3. Define a versioning strategy.
-4. Add a release policy.
-5. Document project-specific architecture conventions.
-
-
----
-
+1. Define branch protection and review rules.
+2. Define release and versioning policy.
+3. Decide whether `latest` should be published.
+4. Configure GitHub environments and secrets.
+5. Review GHCR image names and registry.
+6. Review `.trivyignore.yaml` ownership and expiry policy.
+7. Add project-specific observability and error-handling conventions.
 
 ## 7. Reference Commands
 
-
-Full installation:
-
+Install all dependency groups:
 
 ```bash
 uv sync --all-groups
 ```
 
-
-Developer setup:
-
+Set up local development:
 
 ```bash
-nox -s dev
+uv run nox -s dev
 ```
 
-
-Local quality checks:
-
+Run local quality checks:
 
 ```bash
-nox -s format lint typing
+uv run nox
 ```
 
-
-Add a runtime dependency:
-
+Build and smoke-test the image:
 
 ```bash
-uv add package-name
+uv run nox -s docker_build docker_smoke
 ```
 
-
-Add a development dependency:
-
+Check Trivy exception expiry:
 
 ```bash
-uv add --group dev package-name
+scripts/check-trivyignore-expiry.sh .trivyignore.yaml
 ```
-
-
----
-
 
 ## 8. Conclusion
 
+The current repository is a reusable Python template with Docker and CI/CD scaffolding included.
 
-The template is now oriented toward a generic foundation: it provides essential tooling without locking future projects into a domain, platform, architecture, or organization.
-
-
-The current base is solid for getting started, but it intentionally remains light on the application side. The next
-important improvements are the `README.md`, the `test` session, an initial test directory, and package renaming once
-the first real use case is known.
+The template provides useful defaults but intentionally stays generic. Derived projects must adapt the package directory name, metadata, tests, runtime dependencies, Docker settings, CI/CD publishing behavior, security exceptions, and release policy before treating it as production-ready.

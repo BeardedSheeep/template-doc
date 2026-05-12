@@ -9,9 +9,14 @@ class Settings(BaseSettings):
     environment: str = Field(default="development", alias="APP_ENV")
     debug: bool = Field(default=False, alias="APP_DEBUG")
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(extra="ignore")
 
 
 @lru_cache
 def get_settings() -> Settings:
+    """Return cached application settings.
+
+    Tests that mutate environment variables should call
+    ``get_settings.cache_clear()`` before reading settings again.
+    """
     return Settings()
