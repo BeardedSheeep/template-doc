@@ -113,7 +113,10 @@ repos:
 | `.pre-commit-config.yaml` | Pre-commit hooks |
 | `.gitignore` | Git exclusions for Python and local tools |
 | `.vscode/settings.json` | Local Python interpreter configuration |
+| `.env.example` | Example application environment variables |
+| `LICENSE` | MIT license placeholder |
 | `markdown/` | Project documentation |
+| `src/template_doc/` | Minimal importable package scaffold |
 
 ---
 
@@ -122,11 +125,10 @@ repos:
 - `README.md` to explain installation and commands.
 - `tests/` as soon as application code exists.
 - A Nox `test` session once tests are created.
-- `src/<package>/` if the project becomes a library or structured application.
+- Rename `src/template_doc/` to match the real project package.
 - `Dockerfile` only if the project needs containerization.
-- `.env.example` if the project uses environment variables.
 - CI/CD when the delivery flow becomes clear.
-- A license if the project is shared or published.
+- Replace the license placeholder before the project is shared or published.
 
 ---
 

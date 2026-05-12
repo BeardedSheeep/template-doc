@@ -52,7 +52,7 @@ The guiding principle is simple: provide common foundations, then let each proje
 - Imposed infrastructure provider.
 - Imposed CI/CD.
 - Imposed advanced packaging.
-- Imposed `src/` structure or application package as long as the use case is unknown.
+- Imposed application framework beyond the minimal package scaffold.
 
 
 ---
@@ -67,12 +67,20 @@ template-doc/
 ├── .pre-commit-config.yaml
 ├── .vscode/
 │   └── settings.json
+├── .env.example
+├── LICENSE
 ├── markdown/
-│   ├── cahier-des-charges.md
+│   ├── requirements-specification.md
 │   ├── project-template.md
 │   └── vscode-extensions.md
 ├── noxfile.py
 ├── pyproject.toml
+├── src/
+│   └── template_doc/
+│       ├── __init__.py
+│       ├── cli.py
+│       ├── py.typed
+│       └── settings.py
 └── uv.lock
 ```
 
@@ -92,8 +100,8 @@ Local cache and environment directories (`.venv/`, `.nox/`, `.mypy_cache/`, `.ru
 The project uses `uv` with a simple `pyproject.toml`:
 
 
-- `package = false` to allow immediate usage without an existing Python package;
-- `dependencies = []` to avoid imposing runtime dependencies;
+- `src/template_doc` as a minimal importable package;
+- `pydantic` and `pydantic-settings` as runtime dependencies for typed configuration;
 - dependency groups separated by usage.
 
 
@@ -175,7 +183,7 @@ VS Code points to the local environment:
 | Area | Already implemented | Remaining work |
 |---|---|---|
 | Project metadata | Minimal `pyproject.toml` | Adapt `name`, `description`, authors, and version per project |
-| Runtime dependencies | No imposed dependencies | Add business dependencies case by case with `uv add` |
+| Runtime dependencies | Only typed settings dependencies | Add business dependencies case by case with `uv add` |
 | Dev dependencies | Groups `dev`, `format`, `lint`, `typing`, `test` | Add specialized groups if needed |
 | Local environment | `.venv` managed via `uv`, `dev` session | Document installation command in a README |
 | Automation | Main Nox sessions | Add a `test` session when tests are created |
@@ -188,11 +196,11 @@ VS Code points to the local environment:
 | VS Code | Local interpreter configured | Add extensions/recommendations if needed |
 | Docker | Generic `docker_build` session | Create a `Dockerfile` if containerization is required |
 | Documentation | `markdown/` folder present | Create a user-oriented `README.md` |
-| Packaging | Disabled with `package = false` | Enable for a distributable library |
+| Packaging | Minimal `src/template_doc` package enabled | Adapt package metadata before publishing |
 | CI/CD | Not implemented | Add GitHub Actions or another CI when delivery flow is defined |
-| Source structure | Not imposed | Create `src/`, a package, CLI, or app depending on needs |
-| Application config | Not imposed | Add `.env.example`, settings, or config only if needed |
-| License | Not present | Add a license if the project is to be shared |
+| Source structure | Minimal `src/template_doc` package present | Extend it into a CLI, app, or library as needed |
+| Application config | `.env.example` and typed settings present | Add project-specific config fields |
+| License | MIT license present | Replace placeholder owner before sharing |
 
 
 ---
@@ -208,17 +216,16 @@ VS Code points to the local environment:
 2. Add a `test` Nox session.
 3. Add a Ruff hook in `.pre-commit-config.yaml`.
 4. Add a `tests/` directory with an initial smoke test.
-5. Add a `.env.example` if future projects use environment variables.
+5. Replace the placeholder license owner before sharing the project.
 
 
 ### Priority 2 — When a real project starts
 
 
-1. Choose a source structure (`src/<package>/` or root package).
+1. Rename `src/template_doc` to the real package name.
 2. Add only the required runtime dependencies.
 3. Create the first application modules.
-4. Enable packaging if the project must be installable as a library.
-5. Add a `Dockerfile` only if deployment requires it.
+4. Add a `Dockerfile` only if deployment requires it.
 
 
 ### Priority 3 — When the project becomes serious
@@ -286,4 +293,6 @@ uv add --group dev package-name
 The template is now oriented toward a generic foundation: it provides essential tooling without locking future projects into a domain, platform, architecture, or organization.
 
 
-The current base is solid for getting started, but it intentionally remains incomplete on the application side. The next important improvements are the `README.md`, the `test` session, an initial test directory, and possibly a source structure once the first real use case is known.
+The current base is solid for getting started, but it intentionally remains light on the application side. The next
+important improvements are the `README.md`, the `test` session, an initial test directory, and package renaming once
+the first real use case is known.

@@ -13,7 +13,7 @@ nox.needs_version = ">=2025.5.1"
 nox.options.reuse_existing_virtualenvs = True
 nox.options.error_on_missing_interpreters = True
 nox.options.default_venv_backend = "uv"
-nox.options.sessions = ["format", "lint", "typing"]
+nox.options.sessions = ["format", "lint", "typing", "test"]
 
 
 @nox.session(venv_backend="none")
@@ -26,7 +26,7 @@ def dev(session: Session) -> None:
 @nox.session
 def format(session: Session) -> None:
     """Check Python formatting and import order with Ruff."""
-    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", external=True)
+    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", "--locked", external=True)
     session.run("ruff", "check", *SOURCE_PATHS, "--select", "I")
     session.run("ruff", "format", *SOURCE_PATHS, "--check")
 
@@ -34,15 +34,27 @@ def format(session: Session) -> None:
 @nox.session
 def lint(session: Session) -> None:
     """Run Ruff lint checks."""
-    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", external=True)
+    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", "--locked", external=True)
     session.run("ruff", "check", *SOURCE_PATHS)
 
 
 @nox.session
 def typing(session: Session) -> None:
     """Run mypy type checks."""
-    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", external=True)
+    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", "--locked", external=True)
     session.run("mypy", *SOURCE_PATHS)
+
+
+@nox.session
+def test(session: Session) -> None:
+    """Run pytest."""
+    tests_dir = PROJECT_DIR / "tests"
+    if not tests_dir.exists():
+        session.log("tests directory not found; nothing to run")
+        return
+
+    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", "--locked", external=True)
+    session.run("pytest", str(tests_dir), *session.posargs)
 
 
 @nox.session
