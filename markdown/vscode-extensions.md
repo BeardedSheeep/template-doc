@@ -1,4 +1,4 @@
-# Extensions VS Code recommandées
+# Recommended VS Code Extensions
 
 ```bash
 code --install-extension alefragnani.project-manager
