@@ -16,6 +16,14 @@ nox.options.default_venv_backend = "uv"
 nox.options.sessions = ["format", "lint", "typing", "test"]
 
 
+def docker_image_name() -> str:
+    """Return the local Docker image name used by Docker Nox sessions."""
+    default_image_name = re.sub(r"[^a-z0-9_.-]+", "-", PROJECT_NAME.lower()).strip("-") or "app"
+    image_name = os.getenv("DOCKER_IMAGE", default_image_name)
+    image_tag = os.getenv("DOCKER_TAG", "latest")
+    return f"{image_name}:{image_tag}"
+
+
 @nox.session(venv_backend="none")
 def dev(session: Session) -> None:
     """Set up the local development environment."""
@@ -58,21 +66,35 @@ def test(session: Session) -> None:
 
 
 @nox.session
+def audit(session: Session) -> None:
+    """Run Python dependency vulnerability checks."""
+    session.run("uv", "sync", "--active", "--all-extras", "--all-groups", "--locked", external=True)
+    session.run("pip-audit")
+
+
+@nox.session
 def docker_build(session: Session) -> None:
     """Build the project Docker image."""
     dockerfile = Path(os.getenv("DOCKERFILE", "Dockerfile"))
     if not dockerfile.exists():
         session.error(f"Dockerfile not found: {dockerfile}")
 
-    default_image_name = re.sub(r"[^a-z0-9_.-]+", "-", PROJECT_NAME.lower()).strip("-") or "app"
-    image_name = os.getenv("DOCKER_IMAGE", default_image_name)
-    image_tag = os.getenv("DOCKER_TAG", "latest")
+    image_name = docker_image_name()
     docker_target = os.getenv("DOCKER_TARGET")
 
-    command = ["docker", "build", "-f", str(dockerfile), "-t", f"{image_name}:{image_tag}"]
+    command = ["docker", "build", "-f", str(dockerfile), "-t", image_name]
     if docker_target:
         command.extend(["--target", docker_target])
     command.extend(session.posargs)
     command.append(".")
 
+    session.run(*command, external=True)
+
+
+@nox.session
+def docker_smoke(session: Session) -> None:
+    """Run a minimal smoke test against the project Docker image."""
+    image_name = docker_image_name()
+    command = ["docker", "run", "--rm", image_name]
+    command.extend(session.posargs)
     session.run(*command, external=True)
