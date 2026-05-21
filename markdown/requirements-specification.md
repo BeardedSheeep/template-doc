@@ -63,7 +63,6 @@ template-doc/
 │       ├── cicd.yaml
 │       └── quality.yaml
 ├── markdown/
-│   ├── adr-trivyignore-expiry-check.md
 │   ├── project-template.md
 │   ├── python-docker-cicd-template.md
 │   ├── requirements-specification.md
@@ -188,7 +187,7 @@ markdown/adr-trivyignore-expiry-check.md
 
 ### 4.6 CI/CD
 
-The shared quality workflow runs dependency audit, formatting, linting, typing, and tests. It is called by both CI and CI/CD so pull-request validation and delivery use the same quality gate.
+The shared quality workflow runs dependency audit, formatting, linting, typing, and tests. CI/CD keeps a blocking scan-before-publish image gate.
 
 The CI workflow runs on:
 

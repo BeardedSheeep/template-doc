@@ -95,14 +95,20 @@ Run the container smoke test:
 uv run nox -s docker_smoke
 ```
 
+Run the full local image quality gate:
+
+```bash
+uv run nox -s image_quality
+```
+
 Before using Docker for a real project, review the base image, entrypoint, runtime packages, ports, user, registry, tags, and publication rules.
 
 ## CI/CD
 
 Workflows:
 
-- `.github/workflows/ci.yaml`: runs the shared quality workflow on pushes and pull requests to `main`;
 - `.github/workflows/quality.yaml`: runs audit, format, lint, typing, and tests;
+- `.github/workflows/ci.yaml`: runs quality checks on pushes and pull requests;
 - `.github/workflows/cicd.yaml`: builds the image, runs security scans, and publishes to GHCR after blocking checks pass.
 
 Before enabling CI/CD for a real project, review branch rules, workflow permissions, registry naming, image promotion, secrets, environments, and release policy.

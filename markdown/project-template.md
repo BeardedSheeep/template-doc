@@ -146,7 +146,6 @@ The repository includes:
 - `pip-audit` through Nox;
 - Trivy, OSV Scanner, and Gitleaks in CI/CD;
 - `.trivyignore.yaml` with expiring vulnerability exceptions;
-- an ADR describing the Trivy exception expiry check;
 - a reusable GitHub Actions quality workflow shared by CI and CI/CD;
 - Docker and GHCR publishing workflow examples.
 

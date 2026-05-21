@@ -116,6 +116,16 @@ on:
 
 The CI workflow calls `.github/workflows/quality.yaml`.
 
+## Local Image Quality
+
+Run the local image quality gate with:
+
+```bash
+uv run nox -s image_quality
+```
+
+The session checks Trivy ignore expiry, builds the image, runs the container smoke test, and scans the image with Trivy.
+
 ## CI/CD Workflow
 
 File:

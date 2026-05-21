@@ -90,3 +90,44 @@ def docker_smoke(session: Session) -> None:
     command = ["docker", "run", "--rm", image_name]
     command.extend(session.posargs)
     session.run(*command, external=True)
+
+
+@nox.session
+def image_quality(session: Session) -> None:
+    image_name = docker_image_name()
+
+    session.run("bash", "scripts/check-trivyignore-expiry.sh", ".trivyignore.yaml", external=True)
+
+    dockerfile = Path(os.getenv("DOCKERFILE", "Dockerfile"))
+    if not dockerfile.exists():
+        session.error(f"Dockerfile not found: {dockerfile}")
+
+    build_command = ["docker", "build", "-f", str(dockerfile), "-t", image_name]
+    docker_target = os.getenv("DOCKER_TARGET")
+    if docker_target:
+        build_command.extend(["--target", docker_target])
+    build_command.append(".")
+
+    session.run(*build_command, external=True)
+    session.run("docker", "run", "--rm", image_name, external=True)
+    session.run(
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "-v",
+        f"{PROJECT_DIR}:/workspace",
+        "aquasec/trivy:0.70.0",
+        "image",
+        "--scanners",
+        "vuln",
+        "--ignorefile",
+        "/workspace/.trivyignore.yaml",
+        "--severity",
+        "HIGH,CRITICAL",
+        "--exit-code",
+        "1",
+        image_name,
+        external=True,
+    )
