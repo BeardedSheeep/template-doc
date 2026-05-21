@@ -22,7 +22,11 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends --only-upgrade libgnutls30 \
+    && apt-get install -y --no-install-recommends --only-upgrade \
+        libcap2 \
+        libgnutls30 \
+        libssl3 \
+        openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd --create-home --shell /usr/sbin/nologin app
