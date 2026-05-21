@@ -3,7 +3,7 @@ name = "template-doc"
 version = "0.1.0"
 description = "Personal Python project template."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [
@@ -24,8 +24,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "pydantic-settings>=2.0.0,<3.0.0",
 ]
 
 [project.urls]
@@ -112,3 +112,12 @@ check_untyped_defs = true
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+
+[tool.coverage.run]
+branch = true
+source = ["template_doc"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
